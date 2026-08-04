@@ -1,0 +1,18 @@
+
+
+No creamos nada en la carpeta de los text, solo asegurarnos que todas las puebas pasen correctamente.
+
+
+Lectura de archivos.
+Creación de objetos.
+Lógica de cálculos.
+Uso de bucles y condicionales.
+Resultado del JSON final.
+Cruce de datos entre JSON y CSV.
+
+
+
+
+
+
+

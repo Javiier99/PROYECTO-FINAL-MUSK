@@ -1,0 +1,26 @@
+
+
+
+
+
+# ! Script principal, se debe: Leer los datos, crear los objetos, hacer los 10 cálculos requeridos, general el informe JSON final
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
