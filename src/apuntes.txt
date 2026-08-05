@@ -1,0 +1,172 @@
+
+
+Hay que explicar campo por campo lo que hacemos
+
+
+
+
+
+================================================================================
+                    LOS 10 CÁLCULOS OBLIGATORIOS (PROYECTO)
+================================================================================
+
+TÉCNICAS A COMBINAR:
+--------------------
+- Bucles (for / while)
+- Condicionales (if / else)
+- Programación funcional (map, filter, reduce, lambdas, etc.)
+- Cruce / relación de datos entre Clientes (JSON) y Ventas (CSV)
+- Manipulación de datos con Pandas (para partes específicas)
+
+
+--------------------------------------------------------------------------------
+01. Número total de clientes
+--------------------------------------------------------------------------------
+• Objetivo: Contar el número total de clientes registrados.
+• Método:   Calcular la longitud/tamaño de la estructura de datos del JSON.
+
+
+--------------------------------------------------------------------------------
+02. Número total de ventas
+--------------------------------------------------------------------------------
+• Objetivo: Obtener la cantidad total de transacciones registradas.
+• Método:   Calcular el tamaño o número total de filas del CSV de ventas.
+
+
+--------------------------------------------------------------------------------
+03. Total de ingresos por cliente
+--------------------------------------------------------------------------------
+• Objetivo: Determinar cuánto ha gastado cada cliente en total.
+• Método:   Para cada cliente:
+            1. Filtrar sus ventas utilizando 'client_id'.
+            2. Sumar el campo 'amount' de todas sus ventas.
+
+
+--------------------------------------------------------------------------------
+04. Número de ventas e ingreso promedio por cliente
+--------------------------------------------------------------------------------
+• Objetivo: Calcular el volumen de compras y el ticket medio de cada cliente.
+• Método:   1. Cantidad de ventas = longitud de sales_by_client(client_id).
+            2. Promedio = total_gastado / cantidad_ventas.
+
+
+--------------------------------------------------------------------------------
+05. Cliente con mayor gasto por país
+--------------------------------------------------------------------------------
+• Objetivo: Identificar al cliente "Top Spender" de cada país.
+• Método:   1. Agrupar a los clientes según su 'country'.
+            2. Calcular los gastos totales de cada cliente en su respectivo grupo.
+            3. Seleccionar y devolver el cliente con el mayor total por país.
+
+
+--------------------------------------------------------------------------------
+06. Total de ventas por categoría
+--------------------------------------------------------------------------------
+• Objetivo: Obtener el volumen total de ingresos agrupado por categoría de producto.
+• Método:   Usando Pandas:
+            Agrupar por categoría y sumar montos:
+            df.groupby("category")["amount"].sum()
+
+
+--------------------------------------------------------------------------------
+07. Cliente con más ventas en una categoría específica
+--------------------------------------------------------------------------------
+• Objetivo: Encontrar al cliente que realizó el mayor número de compras en una categoría.
+• Método:   1. Filtrar ventas por categoría (función pura).
+            2. Agrupar o contar las ventas resultantes por cliente.
+            3. Devolver el cliente que tenga el valor máximo.
+
+
+--------------------------------------------------------------------------------
+08. Número de clientes que superan un gasto mínimo
+--------------------------------------------------------------------------------
+• Objetivo: Contar cuántos clientes superan un umbral de gasto (ej. mínimo = 500€).
+• Método:   1. Calcular el gasto total de cada cliente: total_amount_by_client(id).
+            2. Recorrer la lista usando bucles/condicionales (o filter).
+            3. Incrementar el contador si el gasto es mayor o igual al mínimo.
+
+
+--------------------------------------------------------------------------------
+09. Ventas acumuladas mes a mes
+--------------------------------------------------------------------------------
+• Objetivo: Analizar la evolución temporal de las ventas en periodos mensuales.
+• Método:   Usando Pandas:
+            1. Convertir la columna de fecha a datetime: pd.to_datetime(df["date"]).
+            2. Extraer el periodo Año-Mes: df["date"].dt.to_period("M").
+            3. Agrupar por el nuevo periodo (groupby) y sumar los montos.
+
+
+--------------------------------------------------------------------------------
+10. Análisis Avanzado de Clientes y Ventas
+--------------------------------------------------------------------------------
+• Objetivo: Consolidar métricas globales cruzando el perfil del cliente con las ventas.
+• Método:   Integrar los datos del JSON (perfil, país) con el DataFrame de Pandas
+            para identificar tendencias o correlaciones avanzadas entre el perfil
+            del usuario y su comportamiento de compra.
+================================================================================
+
+
+
+
+
+
+
+
+================================================================================
+                    PROGRAMACIÓN FUNCIONAL + PANDAS
+================================================================================
+
+--------------------------------------------------------------------------------
+1. PRINCIPIOS DE PROGRAMACIÓN FUNCIONAL
+--------------------------------------------------------------------------------
+• Reglas Clave:
+  - Usar funciones puras (mismos argumentos = siempre mismo resultado, sin efectos secundarios).
+  - Inmutabilidad: NUNCA modificar las estructuras originales, devolver siempre nuevas listas o dicts.
+  - Utilizar funciones de orden superior: filter(), map(), reduce(), lambdas.
+
+• Ejemplo de Función Pura (Filtrado por Categoría):
+  
+  def filter_sales_by_category(sales, category):
+      return list(filter(lambda s: s.category == category, sales))
+
+• Ejemplo de Función Pura (Filtrado por Rango de Fechas):
+
+  def filter_sales_by_date_range(sales, start_date, end_date):
+      return list(filter(lambda s: start_date <= s.date <= end_date, sales))
+
+• Operaciones Funcionales Comunes:
+  - Transformar datos:  map(lambda s: s.amount, sales)
+  - Filtrar registros:  filter(lambda s: s.amount > 100, sales)
+  - Acumular valores:   reduce(lambda acc, s: acc + s.amount, sales, 0)
+
+
+--------------------------------------------------------------------------------
+2. INTEGRACIÓN Y MANIPULACIÓN CON PANDAS
+--------------------------------------------------------------------------------
+Pandas se utilizará de forma específica para las tareas de cruce, agregación
+y exportación masiva de datos:
+
+• Cruce de Datos (Merge):
+  Unir el conjunto de Clientes (JSON) con Ventas (CSV) utilizando 'client_id':
+  
+  df_merged = pd.merge(df_sales, df_clients, on="client_id", how="inner")
+
+• Agregaciones y Grupos (Groupby):
+  - Por Categoría:  df.groupby("category")["amount"].agg(["sum", "mean", "count"])
+  - Por País:       df.groupby("country")["amount"].sum()
+  - Por Mes:        df.groupby(df["date"].dt.to_period("M"))["amount"].sum()
+
+• Resumen de Totales:
+  Generación de métricas globales (Total Ventas, Promedio, Gasto Máx/Mín).
+
+• Exportación a JSON:
+  Preparar las estructuras agregadas en formato dict/JSON para su exportación:
+  
+  result_json = df_grouped.to_json(orient="records", indent=4)
+================================================================================
+
+
+
+
+
+
