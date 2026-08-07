@@ -45,11 +45,21 @@ class SalesCollection:
             else:
                 sales_amount_category[category] += amomunt
         sales_amount_category = {value: round(key, 2) for value, key in sales_amount_category.items()}
-        return sales_amount_category
+        return f"El dinero total por categoría es: {sales_amount_category}"
 
-    def average_sale_by_client(self, client_id):
-        # Media de gasto por venta para un cliente
-        pass
+
+
+    def average_sale_by_client(self): #Media de gasto de un cliente
+        average_sales_client = {} # creamos un diccionario para poder guardar cada venta que ha realizado cada cliente
+        for i in self.a_line_file: # Dado que tenemos en el otro archivo un yield, necesitamos que lo vaya recorriendo poco a poco
+            client_id = i[1] # i[1] es el lugar donde se encuentran los ID
+            if client_id not in average_sales_client: # Hay que dividir entre los ID que tenemos y los que no tenemos, en caso de que client_id no se encuentre en sales_client, se crea uno nuevo con un valor de 1, en caso contrario, se le suma 1
+                average_sales_client[f"{client_id}"] = [i[4], 1]
+            else:
+                average_sales_client[f"{client_id}"][1] += 1
+                pass
+        average_sales_client = {value: round(float(key[0])/key[1], 2) for value, key in average_sales_client.items()} # Hacemos len para calcular la media de ventas
+        return f"Los clientes han tenido estas Ventas medias: {average_sales_client}"
 
 
 

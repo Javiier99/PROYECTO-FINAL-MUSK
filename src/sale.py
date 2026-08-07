@@ -12,7 +12,7 @@ class Sale:
         self.date = str(date) # fecha de la venta
 
     def to_dict(self):
-        # Hacer que el objeto se transforme en un diccionario  para poder exportarlo como JSON
+        print(self.sale_id, self.client_id , self.product, self.category, self.amount, self.date)
         pass
 
 

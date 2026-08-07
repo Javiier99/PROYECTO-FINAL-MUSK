@@ -7,10 +7,16 @@ class Client:
         self.country = str(country) # Pais del cliente
         self.signup_date = str(signup_date) # Fecha en la que se registro
 
-    def to_dict(self):
-        # Hacer que el objeto se transforme en un diccionario para poder exportarlo como JSON
+    # ? Tengo que exportarlo, en base a un filtro que quiero hacer, en base a ventas en base a que?
+    def to_dict(self, export):
+        if(export == 1):
+            pass
+        elif(export == 2):
+            pass
+        with open("data/clientes_creado.json", "w", encoding="utf-8"):
+            pass
         pass
-        
+
 
 
 

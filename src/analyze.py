@@ -1,8 +1,4 @@
 
-
-
-
-
 # ! Script principal, se debe: Leer los datos, crear los objetos, hacer los 10 cálculos requeridos, general el informe JSON final
 
 
@@ -68,7 +64,32 @@ import csv
 import pandas as pd
 
 
-what_to_do = int(input("Que es lo que quieres hacer (contesta con un número) 1: Clientes 2: Ventas "))
+what_to_do = int(input("Que es lo que quieres hacer (contesta con un número) 1: Clientes, 2: Ventas, 3: Exportar"))
+
+try:
+    def read_file_sales():
+        with open("data/sales.csv", "r", newline="", encoding="utf-8") as file:
+            read_files = csv.reader(file) # Lee el archivo de 1 en 1
+            header = next(read_files) # Quitamos el header
+            for i in read_files: #Lee todo el archivo a medida que lo vayan cesitando
+                yield i # Lo enviamos con Yield para no sobrecargar el servidor
+    # Utilizaré los dos siguientes códigos para todo, y así evitamos diplicidad en el código
+    save_data = read_file() # Lee el archivo completo
+    all_object_class = SalesCollection(save_data) # Creamos el objeto con lo que vayamos enviando
+
+    def read_file_client():
+        with open("data/clients.json", "r", encoding="utf-8") as file:
+            file.readline() # Leemos la primera fila para quitarnos el corchete
+            for line in file: # Empezamos a leer todo el archivo línea por línea
+                a_line = line.strip()
+                if(a_line == "]"): # en caso de que llegue al corchete de cierre, terminamos el bucle ya que no nos sirve
+                    break
+                if a_line.endswith(","): # Quitamos la coma al final para romperlo y tenerlo en diferentes piezas
+                    a_line = a_line[:-1]
+                client = json.loads(a_line) # Transformamos de json a objeto --> Diccionario
+                yield client # Enviamos el objeto a donde querramos, de uno en uno, para no saturar
+except Exception as e:
+    print(f"Ha ocurrido un error {e}")
 
 # * Clientes
 if(what_to_do == 1):
@@ -123,21 +144,23 @@ if(what_to_do == 1):
 
 elif(what_to_do == 2):
 
-    what_to_do_sales = int(input("Contesta con un número: 1: Quieres saber la cantidad de compra por ID, 2: Saber el total de dinero que han comprado por ID, 3: Saber el total de dinero obtenido por categorías "))
+    what_to_do_sales = int(input("Contesta con un número: 1: Quieres saber la cantidad de compra por ID, 2: Saber el total de dinero que han comprado por ID, 3: Saber el total de dinero obtenido por categorías, 4: Venta Media por cliente "))
     try:
         def read_file():
             with open("data/sales.csv", "r", newline="", encoding="utf-8") as file:
-                read_files = csv.reader(file) 
-                header = next(read_files)
-                for i in read_files:
-                    yield i
-        save_data = read_file()
-        all_object_class = SalesCollection(save_data)
+                read_files = csv.reader(file) # Lee el archivo de 1 en 1
+                header = next(read_files) # Quitamos el header
+                for i in read_files: #Lee todo el archivo a medida que lo vayan cesitando
+                    yield i # Lo enviamos con Yield para no sobrecargar el servidor
+
+        # Utilizaré los dos siguientes códigos para todo, y así evitamos diplicidad en el código
+        save_data = read_file() # Lee el archivo completo
+        all_object_class = SalesCollection(save_data) # Creamos el objeto con lo que vayamos enviando
     except Exception as e:
         print(f"Ha ocurrido un error {e}")
 
 
-    if(what_to_do_sales == 1): #  Saber la cantidad de compra por ID
+    if(what_to_do_sales == 1): #  Saber la cantidad de compra por cliente
         result = all_object_class.sales_by_client()
         print(result)
 
@@ -145,13 +168,23 @@ elif(what_to_do == 2):
         result = all_object_class.total_amount_by_client()
         print(result)
 
-    elif(what_to_do_sales == 3):
+    elif(what_to_do_sales == 3): # Saber el dinero total obtenido por categoría
         result = all_object_class.total_amount_by_category()
         print(result)
 
+    elif(what_to_do_sales == 4): # Valor Media por cliente # Creo que se refiere al valor porque entonces no hay otra cosa2
+        result = all_object_class.average_sale_by_client()
+        print(result)
 
+elif(what_to_do == 3):
+    what_to_do_export = int(input("1: Exportar clientes, 2: Exportar  ventas"))
+    
+    if(what_to_do_export == 1):
+        pass
+    elif(what_to_do_export == 2):
+        pass
+    else:
+        print("Ese comando no existe")
 else:
     print("No existe ese comando")
-
-
 
