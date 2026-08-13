@@ -9,7 +9,6 @@ class Client:
         self.signup_date = str(signup_date)  # Fecha en la que se registró
 
     def to_dict(self):
-        """Convierte el objeto Client a un diccionario de Python."""
         return {
             "client_id": self.client_id,
             "name": self.name,
@@ -22,6 +21,3 @@ class Client:
 
 
 
-
-
-    
