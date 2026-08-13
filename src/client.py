@@ -1,5 +1,8 @@
 # from client_collection import client_collection
 
+
+
+
 class Client:
     def __init__(self, client_id, name, country, signup_date):
         self.client_id = int(client_id) # Identificaión único
@@ -8,6 +11,7 @@ class Client:
         self.signup_date = str(signup_date) # Fecha en la que se registro
 
     # ? Tengo que exportarlo, en base a un filtro que quiero hacer, en base a ventas en base a que?
+    # Solo para exportarlo y a tomar viento
     def to_dict(self, export):
         if(export == 1):
             pass
