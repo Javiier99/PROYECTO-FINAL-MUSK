@@ -1,7 +1,3 @@
-
-
-
-
 class Sale:
 
     def __init__(self, sale_id, client_id, product, category, amount, date):
@@ -22,11 +18,3 @@ class Sale:
             "amount": self.amount,
             "date": self.date,
         }
-
-
-
-
-
-
-
-    

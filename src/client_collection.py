@@ -1,55 +1,52 @@
-
 from src.client import Client
-import json
-
-
-# ! Logica para manejar los clientes
 
 
 class ClientCollection:
-    def __init__(self, clients = None): # Creamos el objeto self cliente, en caso de que no pase nada, será none
+
+    def __init__(self, clients=None):
+        # Inicializa la lista de clientes o asigna una vacía por defecto
         self.clients = clients if clients is not None else []
 
-    # *  Abajo están las funciones que están ok
-    # Ejercicio 1
-    def n_total_client(self): # suma de todos los clientes totales
-            total_client = 0
-            for i in self.clients:
-                total_client += 1
-            return total_client
+    def n_total_client(self):
+        """Ejercicio 1: Cuenta el número total de clientes registrados."""
+        total_client = 0
+        for _ in self.clients:
+            total_client += 1
+        return total_client
 
-
-
-
-
-    # ! Abajo las funciones que aun quedan por comprobar si están ok
-
-
-    def get_client_by_id(self, client_id): # buscaremos el cliente por el ID
-        for i in self.clients: # un bucle dado que tenemos un yield, debemos de recorrer por todos los sitios hasta encontrar lo que nos interesa
-            if(i['client_id'] == client_id): # hay una coincidencia, pasa el if
-                save_dates = f"El cliente que buscas con id {client_id} se llama {i['name']} es de {i['country']} y se registró el {i['signup_date']}" # ponemos los datos de mejor forma
-                return save_dates #retornamos los datos, dado que el id es único, pues no hace falta buscar más
-        
-        return f"No se ha encontrado el id {client_id}" # en caso de que no encuentre nada con el id, retornamos "no se ha encontrado"
-
-
-
-    def search_clients_by_country(self, country): # buscaremos el pais del cliente
+    def get_client_by_id(self, client_id):
+        """Busca y devuelve los detalles de un cliente por su ID único."""
         for i in self.clients:
-            if(str(i['country']).lower() == country):
-                save_date = f"El cliente que buscas con su pais {country} se llama {i['name']} su id es {i['client_id']} y se registró el {i['signup_date']}"
-                return save_date
+            # Compatibilidad para acceder tanto a objeto Client como a diccionario
+            cid = i.client_id if hasattr(i, "client_id") else i.get("client_id")
+            name = i.name if hasattr(i, "name") else i.get("name")
+            country = i.country if hasattr(i, "country") else i.get("country")
+            sdate = (
+                i.signup_date
+                if hasattr(i, "signup_date")
+                else i.get("signup_date")
+            )
+
+            if cid == client_id:
+                return f"El cliente que buscas con id {client_id} se llama {name} es de {country} y se registró el {sdate}"
+
+        return f"No se ha encontrado el id {client_id}"
+
+    def search_clients_by_country(self, country):
+        """Busca el primer cliente coincidente por país."""
+        for i in self.clients:
+            c_country = (
+                i.country if hasattr(i, "country") else i.get("country")
+            )
+            cid = i.client_id if hasattr(i, "client_id") else i.get("client_id")
+            name = i.name if hasattr(i, "name") else i.get("name")
+            sdate = (
+                i.signup_date
+                if hasattr(i, "signup_date")
+                else i.get("signup_date")
+            )
+
+            if str(c_country).lower() == str(country).lower():
+                return f"El cliente que buscas con su pais {country} se llama {name} su id es {cid} y se registró el {sdate}"
+
         return f"No se ha encontrado el pais del cliente: {country}"
-
-
-
-
-
-
-
-
-
-
-
-
