@@ -1,72 +1,161 @@
 import os
 import sys
+import pandas as pd
+import json
 
-# Añadir directorio raíz
+# Añadimos la raíz del proyecto al path de Python
 sys.path.insert(
     0, os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
 )
-# ! Script principal, se debe: Leer los datos, crear los objetos, hacer los 10 cálculos requeridos, general el informe JSON final
 
-# * Script completo
+# Ahora sí importamos las funciones normalmente:
 
-from client import Client
-from sale import Sale
-from src.client_collection import ClientCollection
+from src.functional_util import (
+    read_file_client,
+    read_file_client_pd,
+    read_file_sales,
+    read_file_sales_pd,
+)
 from src.sales_collection import SalesCollection
-import json
-import csv
-import pandas as pd
+from src.client_collection import ClientCollection
+
+
+def generate_report():
+    
+    # Carga de datos inicial (evitamos leer múltiples veces)
+    
+    file_client = read_file_client()
+    file_sales = read_file_sales()
+
+    df_sales = read_file_sales_pd()
+    df_client = read_file_client_pd()
+    df_merged = pd.merge(df_sales, df_client, on="client_id", how="inner")
+
+    # Instanciamos los objetos principales
+    client_col = ClientCollection(file_client)
+    sales_col = SalesCollection(file_sales)
+    sales_col_pd = SalesCollection(df_merged)
+
+    
+    # 10 cálculos
+    
+
+    # Ejercicio 1: Número total de clientes
+    result_ejercice_1 = client_col.n_total_client()
+
+    # Ejercicio 2: Número total de ventas
+    result_ejercice_2 = sales_col.number_total_sales()
+
+    # Ejercicio 3: Total de ingresos por cliente
+    result_ejercice_3 = sales_col.total_amount_by_client()
+
+    # Ejercicio 4: Número de ventas por cliente
+    result_ejercice_4 = sales_col.sales_by_client()
+
+    # Ejercicio 5: Ingreso promedio por venta de cada cliente
+    result_ejercice_5 = sales_col.average_sale_by_client()
+
+    # Ejercicio 6: Cliente con mayor gasto por país
+    # Instanciamos SalesCollection con clientes según tu estructura previa
+    sales_client_obj = SalesCollection(file_client)
+    result_ejercice_6 = sales_client_obj.sales_client_by_country(result_ejercice_3)
+
+    # Ejercicio 7: Total de ventas por categoría
+    send_costumer = SalesCollection(read_file_sales_pd())
+    result_ejercice_7 = send_costumer.total_amount_by_category()
+
+    # Ejercicio 8: Cliente con más ventas en una categoría específica
+    result_ejercice_8 = sales_col_pd.client_more_sales_category("Electronics")
+
+    # Ejercicio 9: Número de clientes que superan un gasto mínimo
+    min_amount = 500
+    result_ejercice_9 = sales_col_pd.number_client_exceed_min_spending(min_amount)
+
+    # Ejercicio 10: Ventas acumuladas mes a mes
+    result_ejercice_10 = sales_col_pd.monthly_cumulative_sales()
+
+
+    # Construcción del informe según nos marca en el ejemplo página 9 pdf
+
+    # 1. Mapeo del bloque "clients"
+    # Cruzamos los cálculos por cliente (3, 4 y 5) en la lista requerida
+    clients_list = []
+    for client in file_client:
+        c_id = client.client_id if hasattr(client, "client_id") else client["client_id"]
+        c_name = client.name if hasattr(client, "name") else client["name"]
+
+        # Extraemos totales o asignamos 0 si no existen
+        total_spent = (
+            result_ejercice_3.get(c_id, 0)
+            if isinstance(result_ejercice_3, dict)
+            else 0
+        )
+        sale_count = (
+            result_ejercice_4.get(c_id, 0)
+            if isinstance(result_ejercice_4, dict)
+            else 0
+        )
+        average_sale = (
+            result_ejercice_5.get(c_id, 0)
+            if isinstance(result_ejercice_5, dict)
+            else 0
+        )
+
+        clients_list.append(
+            {
+                "client_id": c_id,
+                "name": c_name,
+                "total_spent": total_spent,
+                "sale_count": sale_count,
+                "average_sale": average_sale,
+            }
+        )
+
+    # Suma total de todos los ingresos
+    total_revenue = (
+        sum(df_sales["amount"])
+        if "amount" in df_sales.columns
+        else sum(result_ejercice_3.values())
+    )
+
+    # Dict final con la estructura exacta del PDF
+    report = {
+        "summary": {
+            "total_clients": result_ejercice_1,
+            "total_sales": result_ejercice_2,
+            "total_revenue": total_revenue,
+        },
+        "clients": clients_list,
+        "top_client_by_country": result_ejercice_6,
+        "sales_by_category": result_ejercice_7,
+        "high_spending_clients": result_ejercice_9,
+        "monthly_sales": result_ejercice_10,
+    }
+
+    # Guardamos en un Json
+    with open("data/report.json", "w", encoding="utf-8") as f:
+        json.dump(report, f, indent=4, ensure_ascii=False)
+
+    return report
+
+
+if __name__ == "__main__":
+    generate_report()
 
 
 
 
 
-# * Abrir todos los archivos necesarios
-# 1 Leer archivos con su libreria
-
-def read_file_client():
-    try:
-        with open("data/clients.json", "r", encoding="utf-8") as file:
-            file = json.load(file)
-            return file
-    except Exception as e:
-        print(f"Ha ocurrido un error {e}")
-
-
-def read_file_sales():
-    try:
-        with open("data/sales.csv", "r", newline="", encoding="utf-8") as file:
-            read_files = csv.reader(file) 
-            header = next(read_files)
-            return list(read_files)
-    except Exception as e:
-        print(f"Ha ocurrido un error {e}")
-
-
-# 1 Usar Pandas
-
-def read_file_client_pd():
-    try:
-        with open("data/clients.json", "r", newline="", encoding="utf-8") as file:
-            file_date = pd.read_json(file)
-            df = pd.DataFrame(file_date)
-            return df
-    except Exception as e:
-        print(f"Ha ocurrido un error {e}")
-        
-def read_file_sales_pd():
-    try:
-        with open("data/sales.csv", "r", newline="", encoding="utf-8") as file:
-            file_date = pd.read_csv(file)
-            df = pd.DataFrame(file_date)
-            return df
-    except Exception as e:
-        print(f"Ha ocurrido un error {e}")
 
 
 
 
 
+
+
+
+
+# Calculos antiguos antes de pasarlo a limpio:
 # # 1 Ejercicio 1
 # print("Ejercicio 1")
 
@@ -182,141 +271,5 @@ def read_file_sales_pd():
 
 
 
-import pandas as pd
-from src.client_collection import ClientCollection
-from src.sales_collection import SalesCollection
-
-# NOTA: Importa tus funciones auxiliares de lectura según las tengas definidas
-# (por ejemplo: from src.functional_util import read_file_client, read_file_sales, etc.)
-
-
-def generate_report():
-    # ---------------------------------------------------------
-    # Carga de datos inicial (evitamos leer múltiples veces)
-    # ---------------------------------------------------------
-    file_client = read_file_client()
-    file_sales = read_file_sales()
-
-    df_sales = read_file_sales_pd()
-    df_client = read_file_client_pd()
-    df_merged = pd.merge(df_sales, df_client, on="client_id", how="inner")
-
-    # Instanciamos los objetos principales
-    client_col = ClientCollection(file_client)
-    sales_col = SalesCollection(file_sales)
-    sales_col_pd = SalesCollection(df_merged)
-
-    # ---------------------------------------------------------
-    # EJECUCIÓN DE LOS 10 CÁLCULOS
-    # ---------------------------------------------------------
-
-    # Ejercicio 1: Número total de clientes
-    result_ejercice_1 = client_col.n_total_client()
-
-    # Ejercicio 2: Número total de ventas
-    result_ejercice_2 = sales_col.number_total_sales()
-
-    # Ejercicio 3: Total de ingresos por cliente
-    result_ejercice_3 = sales_col.total_amount_by_client()
-
-    # Ejercicio 4: Número de ventas por cliente
-    result_ejercice_4 = sales_col.sales_by_client()
-
-    # Ejercicio 5: Ingreso promedio por venta de cada cliente
-    result_ejercice_5 = sales_col.average_sale_by_client()
-
-    # Ejercicio 6: Cliente con mayor gasto por país
-    # Instanciamos SalesCollection con clientes según tu estructura previa
-    sales_client_obj = SalesCollection(file_client)
-    result_ejercice_6 = sales_client_obj.sales_client_by_country(
-        result_ejercice_3
-    )
-
-    # Ejercicio 7: Total de ventas por categoría
-    send_costumer = SalesCollection(read_file_sales_pd())
-    result_ejercice_7 = send_costumer.total_amount_by_category()
-
-    # Ejercicio 8: Cliente con más ventas en una categoría específica
-    result_ejercice_8 = sales_col_pd.client_more_sales_category("Electronics")
-
-    # Ejercicio 9: Número de clientes que superan un gasto mínimo
-    min_amount = 500
-    result_ejercice_9 = sales_col_pd.number_client_exceed_min_spending(
-        min_amount
-    )
-
-    # Ejercicio 10: Ventas acumuladas mes a mes
-    result_ejercice_10 = sales_col_pd.monthly_cumulative_sales()
-
-    # ---------------------------------------------------------
-    # CONSTRUCCIÓN DEL INFORME ESTRUCTURADO (Página 9 del PDF)
-    # ---------------------------------------------------------
-
-    # 1. Mapeo del bloque "clients"
-    # Cruzamos los cálculos por cliente (3, 4 y 5) en la lista requerida
-    clients_list = []
-    for client in file_client:
-        c_id = client.client_id if hasattr(client, "client_id") else client["client_id"]
-        c_name = client.name if hasattr(client, "name") else client["name"]
-
-        # Extraemos totales o asignamos 0 si no existen
-        total_spent = (
-            result_ejercice_3.get(c_id, 0)
-            if isinstance(result_ejercice_3, dict)
-            else 0
-        )
-        sale_count = (
-            result_ejercice_4.get(c_id, 0)
-            if isinstance(result_ejercice_4, dict)
-            else 0
-        )
-        average_sale = (
-            result_ejercice_5.get(c_id, 0)
-            if isinstance(result_ejercice_5, dict)
-            else 0
-        )
-
-        clients_list.append(
-            {
-                "client_id": c_id,
-                "name": c_name,
-                "total_spent": total_spent,
-                "sale_count": sale_count,
-                "average_sale": average_sale,
-            }
-        )
-
-    # Suma total de todos los ingresos
-    total_revenue = (
-        sum(df_sales["amount"])
-        if "amount" in df_sales.columns
-        else sum(result_ejercice_3.values())
-    )
-
-    # Dict final con la estructura exacta del PDF
-    report = {
-        "summary": {
-            "total_clients": result_ejercice_1,
-            "total_sales": result_ejercice_2,
-            "total_revenue": total_revenue,
-        },
-        "clients": clients_list,
-        "top_client_by_country": result_ejercice_6,
-        "sales_by_category": result_ejercice_7,
-        "high_spending_clients": result_ejercice_9,
-        "monthly_sales": result_ejercice_10,
-    }
-
-    # ---------------------------------------------------------
-    # GUARDAR JSON
-    # ---------------------------------------------------------
-    with open("data/report.json", "w", encoding="utf-8") as f:
-        json.dump(report, f, indent=4, ensure_ascii=False)
-
-    return report
-
-
-if __name__ == "__main__":
-    generate_report()
 
 
