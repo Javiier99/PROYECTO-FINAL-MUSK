@@ -2,126 +2,130 @@
 
 from sale import Sale
 import pandas as pd
+from datetime import datetime
 
 # ! Manejar toda la logica de las ventas
 
+def filter_by_category(df, category):
+    return df[df["category"] == category]
+
 class SalesCollection:
-    def __init__(self, a_line_file):
-        self.a_line_file = a_line_file
+    def __init__(self, file):
+        self.file = file
+
+
+
+    # * Esta bien
+    # Ejercicio 2
+    def number_total_sales(self): # Contar de 1 en 1 los clientes
+        total_sales = 0
+        for i in self.file:
+            total_sales += 1
+        return total_sales
+
+    # Ejercicio 3
+    
+    def total_amount_by_client(self): # Suma de importes de un cliente
+        sales_amount_client = {} 
+        for i in self.file:
+            client_id = int(i[1])
+            amomunt = round(float(i[4]),2)
+            if client_id not in sales_amount_client:
+                sales_amount_client[client_id] = amomunt
+            else:
+                sales_amount_client[client_id] += amomunt
+        return sales_amount_client
+
+    # Ejercicio 4
 
     def sales_by_client(self): #Ventas por cada cliente
         sales_client = {} # creamos un diccionario para poder guardar cada venta que ha realizado cada cliente
-        for i in self.a_line_file: # Dado que tenemos en el otro archivo un yield, necesitamos que lo vaya recorriendo poco a poco
-            client_id = i[1] # i[1] es el lugar donde se encuentran los ID
+        for i in self.file: # Dado que tenemos en el otro archivo un yield, necesitamos que lo vaya recorriendo poco a poco
+            client_id = int(i[1]) # i[1] es el lugar donde se encuentran los ID
             if client_id not in sales_client: # Hay que dividir entre los ID que tenemos y los que no tenemos, en caso de que client_id no se encuentre en sales_client, se crea uno nuevo con un valor de 1, en caso contrario, se le suma 1
                 sales_client[client_id] = 1
             else:
                 sales_client[client_id] += 1
 
-        return f"Los clientes han tenido estas Ventas: {sales_client}"
+        return sales_client
 
-
-
-    def total_amount_by_client(self): # Suma de importes de un cliente
-        
-        sales_amount_client = {} 
-        for i in self.a_line_file:
-            client_id = i[1]
-            amomunt_id = round(float(i[4]),2)
-            if client_id not in sales_amount_client:
-                sales_amount_client[client_id] = {"revenues_sales" : amomunt_id}
-            else:
-                sales_amount_client[client_id]["revenues_sales"] += amomunt_id
-        return sales_amount_client
-
-        
-
-    def total_amount_by_category(self): # Suma de importes por categoría de cliente
-        
-        df = self.a_line_file
-        sales_total = {}
-        result = df.groupby('category')['amount'].sum()
-        return result
-
-
-        # Código sin pandas
-        # sales_amount_category = {} 
-        # for i in self.a_line_file:
-        #     category = i[3]
-        #     amomunt = round(float(i[4]),2)
-        #     if category not in sales_amount_category:
-        #         sales_amount_category[category] = amomunt
-        #     else:
-        #         sales_amount_category[category] += amomunt
-        # sales_amount_category = {value: round(key, 2) for value, key in sales_amount_category.items()}
-        # return f"El dinero total por categoría es: {sales_amount_category}"
-
-
+    # Ejercicio 5
 
     def average_sale_by_client(self): #Media de gasto de un cliente
         average_sales_client = {} # creamos un diccionario para poder guardar cada venta que ha realizado cada cliente
-        for i in self.a_line_file: # Dado que tenemos en el otro archivo un yield, necesitamos que lo vaya recorriendo poco a poco
-            client_id = i[1] # i[1] es el lugar donde se encuentran los ID
+        for i in self.file: # Dado que tenemos en el otro archivo un yield, necesitamos que lo vaya recorriendo poco a poco
+            client_id = int(i[1]) # i[1] es el lugar donde se encuentran los ID
+            amount = float(i[4])
             if client_id not in average_sales_client: # Hay que dividir entre los ID que tenemos y los que no tenemos, en caso de que client_id no se encuentre en sales_client, se crea uno nuevo con un valor de 1, en caso contrario, se le suma 1
-                average_sales_client[f"{client_id}"] = [i[4], 1]
+                average_sales_client[client_id] = [amount, 1]
             else:
-                average_sales_client[f"{client_id}"][1] += 1
-                pass
-        average_sales_client = {value: round(float(key[0])/key[1], 2) for value, key in average_sales_client.items()} # Hacemos len para calcular la media de ventas
-        return f"Los clientes han tenido estas ventas medias: {average_sales_client}"
+                average_sales_client[client_id][0] += amount
+                average_sales_client[client_id][1] += 1
+        average_sales = {cid: round(values[0] / values[1], 2)for cid, values in average_sales_client.items()}
+        return average_sales
 
-    def number_total_sales(self):
-        total_sales = 0
-        for i in self.a_line_file:
-            total_sales += 1
-        return total_sales
-
-    def sales_client_by_country(self, result_country, total_importe_cliente):
+    # Ejercicio 6
+    def sales_client_by_country(self, result_ejercice_3):
         sales_country = {}
-        for country in result_country:
-            for client_id in country['ID']:
-                for key, value in total_importe_cliente.items():
-                    if(int(key) == int(client_id)):
-                        if(country['country'] not in sales_country):
-                            sales_country[country['country']] = {"total_amount_customer" : round(float(value['revenues_sales']), 2),"ID" : client_id }
-                        else:
-                            if(round(float(sales_country[country['country']]["total_amount_customer"]),2) < round(float(value['revenues_sales']))):
-                                sales_country[country['country']] = {"total_amount_customer" : round(float(value['revenues_sales']), 2),"ID" : client_id}
 
+        for client in self.file:
+            client_id = client["client_id"]
+            country = client["country"]
+            if client_id in result_ejercice_3: # Cruce de ID con las cantidades del Ejercicio 3
+                total = result_ejercice_3[client_id]
+                if country not in sales_country or total > sales_country[country]["total_amount_customer"]: # Nos quedamos con el ID que más ha gastado de cada país
+                    sales_country[country] = {
+                        "ID": client_id,
+                        "total_amount_customer": round(float(total), 2)
+                    }
         return sales_country
 
+    # Ejercicio 7
 
-    def client_more_sales_category(self):
-        df_category = self.a_line_file["category"].unique()
-        result = [] 
-
-        for category in df_category:
-            df_cat = self.a_line_file[self.a_line_file["category"] == category]
-
-            count = df_cat.groupby(["client_id", "name"]).size()
-
-            total_sales = count.max()
-
-            top_clients = count[count == total_sales]
-
-            names = [f"{nombre} (ID: {cid})" for cid, nombre in top_clients.index]
-            clientes_str = ", ".join(names)
-
-            result.append(f"Categoría '{category}': {clientes_str} con {total_sales} venta(s)")
-
+    def total_amount_by_category(self): # Suma de importes por categoría de cliente
+        df = self.file
+        sales_total = {}
+        result = df.groupby('category')['amount'].sum().to_dict()
         return result
 
 
+    # Ejercicio 8
+
+    def client_more_sales_category(self, category):
+        df_cat = filter_by_category(self.file, category)
+        if df_cat.empty:
+            return f"No hay ventas para la categoría '{category}'"
+        counts = df_cat.groupby(["client_id", "name"]).size()
+
+        max_sales = counts.max()
+        top_clients = counts[counts == max_sales]
+
+        top_list = [{"client_id": cid, "name": name, "sales_count": int(max_sales)} for cid, name in top_clients.index ]
+
+        return top_list
+
     def number_client_exceed_min_spending(self, min_amount):
-        df_spend = (self.a_line_file.groupby(["client_id", "name"])["amount"].sum().reset_index())
+        df_spend = (self.file.groupby(["client_id", "name"])["amount"].sum().reset_index())
 
-        df_filtred = df_spend[df_spend["amount"] > min_amount]
+        high_spenders = []
 
-        total_clients = len(df_filtred)
+        for indice, row in df_spend.iterrows():
+            if row["amount"] > min_amount:
+                high_spenders.append(row["name"])
 
-        return (f"Total de clientes que superan los {min_amount}€: {total_clients}\n\n" f"Detalle:\n {df_filtred.to_string}")
-    
+        return high_spenders
 
+
+    def monthly_cumulative_sales(self):
+        df = self.file
+        
+        df["date"] = pd.to_datetime(df["date"]) # Convertimos directamente a datetime con Pandas
+
+        df["year_month"] = df["date"].dt.to_period("M").astype(str) # Extraemos el periodo YYYY-MM
+        monthly_sales = df.groupby("year_month")["amount"].sum() # Agrupamos por mes y calculamos
+
+        cumulative_sales = monthly_sales.cumsum() # Calculamos el acumulado
+        return cumulative_sales.to_dict()
 
 
 

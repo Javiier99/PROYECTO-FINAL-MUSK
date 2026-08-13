@@ -9,7 +9,21 @@ import json
 class ClientCollection:
     def __init__(self, clients = None): # Creamos el objeto self cliente, en caso de que no pase nada, será none
         self.clients = clients if clients is not None else []
-        
+
+    # *  Abajo están las funciones que están ok
+    # Ejercicio 1
+    def n_total_client(self): # suma de todos los clientes totales
+            total_client = 0
+            for i in self.clients:
+                total_client += 1
+            return total_client
+
+
+
+
+
+    # ! Abajo las funciones que aun quedan por comprobar si están ok
+
 
     def get_client_by_id(self, client_id): # buscaremos el cliente por el ID
         for i in self.clients: # un bucle dado que tenemos un yield, debemos de recorrer por todos los sitios hasta encontrar lo que nos interesa
@@ -28,24 +42,7 @@ class ClientCollection:
                 return save_date
         return f"No se ha encontrado el pais del cliente: {country}"
 
-    def n_total_client(self): # suma de todos los clientes totales
-        total_client = 0
-        for i in self.clients:
-            total_client += 1
-        return total_client
 
-    def client_by_country(self):
-        client_country = {}
-        for i in self.clients: # Dado que tenemos en el otro archivo un yield, necesitamos que lo vaya recorriendo poco a poco
-            client_by_country = i['country'] # i[0] es el lugar donde se encuentran los ID
-            if client_by_country not in client_country: 
-                client_country[client_by_country] = {'ID' : [i['client_id']], 'n_client' : 1, 'country' : client_by_country}
-            else:
-                client_country[client_by_country]['n_client'] += 1
-                client_country[client_by_country]['ID'].append(i['client_id'])
-        for country, data in client_country.items():
-            yield data
-        # Dividimos los clientes por sus distintos paises, lo devolvemos a analyze
 
 
 
