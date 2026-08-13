@@ -28,18 +28,9 @@
         }
     ],
     "top_client_by_country": {
-        "Spain": {
-            "ID": 1,
-            "total_amount_customer": 1299.97
-        },
-        "Germany": {
-            "ID": 2,
-            "total_amount_customer": 1389.49
-        },
-        "France": {
-            "ID": 3,
-            "total_amount_customer": 349.98
-        }
+        "Spain": "Alice",
+        "Germany": "Bob",
+        "France": "Carol"
     },
     "sales_by_category": {
         "Accessories": 339.97,
