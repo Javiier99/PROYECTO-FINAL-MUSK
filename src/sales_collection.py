@@ -1,8 +1,7 @@
 
-
-from sale import Sale
-import pandas as pd
 from datetime import datetime
+import pandas as pd
+from src.sale import Sale
 
 # ! Manejar toda la logica de las ventas
 

@@ -1,7 +1,7 @@
+import json
 import os
 import sys
 import pandas as pd
-import json
 
 # Añadimos la raíz del proyecto al path de Python
 sys.path.insert(
