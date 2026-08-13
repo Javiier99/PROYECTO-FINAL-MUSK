@@ -3,7 +3,6 @@ import os
 import sys
 import pandas as pd
 
-# Garantizar resolución del path
 sys.path.insert(
     0, os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
 )
@@ -19,8 +18,6 @@ from src.sales_collection import SalesCollection
 
 
 def generate_report():
-    """Genera el informe JSON consolidado ejecutando los 10 cálculos obligatorios."""
-    # Lectura de fuentes de datos
     file_client = read_file_client()
     file_sales = read_file_sales()
 
@@ -28,12 +25,10 @@ def generate_report():
     df_client = read_file_client_pd()
     df_merged = pd.merge(df_sales, df_client, on="client_id", how="inner")
 
-    # Instanciación de colecciones
     client_col = ClientCollection(file_client)
     sales_col = SalesCollection(file_sales)
     sales_col_pd = SalesCollection(df_merged)
 
-    # Ejercicios 1 a 10
     result_ejercice_1 = client_col.n_total_client()
     result_ejercice_2 = sales_col.number_total_sales()
     result_ejercice_3 = sales_col.total_amount_by_client()
@@ -47,7 +42,6 @@ def generate_report():
 
     send_costumer = SalesCollection(df_sales)
     result_ejercice_7 = send_costumer.total_amount_by_category()
-    result_ejercice_8 = sales_col_pd.client_more_sales_category("Electronics")
 
     min_amount = 500
     result_ejercice_9 = sales_col_pd.number_client_exceed_min_spending(
@@ -55,7 +49,6 @@ def generate_report():
     )
     result_ejercice_10 = sales_col_pd.monthly_cumulative_sales()
 
-    # Mapeo consolidado por cliente para la clave 'clients'
     clients_list = []
     for client in file_client:
         c_id = (
@@ -85,20 +78,14 @@ def generate_report():
             {
                 "client_id": c_id,
                 "name": c_name,
-                "total_spent": total_spent,
+                "total_spent": round(total_spent, 2),
                 "sale_count": sale_count,
                 "average_sale": average_sale,
             }
         )
 
-    # Cálculo del ingreso global
-    total_revenue = (
-        sum(df_sales["amount"])
-        if "amount" in df_sales.columns
-        else sum(result_ejercice_3.values())
-    )
+    total_revenue = sum(df_sales["amount"])
 
-    # Estructura del objeto report
     report = {
         "summary": {
             "total_clients": result_ejercice_1,
@@ -112,7 +99,6 @@ def generate_report():
         "monthly_sales": result_ejercice_10,
     }
 
-    # Guardar en JSON
     os.makedirs("data", exist_ok=True)
     with open("data/report.json", "w", encoding="utf-8") as f:
         json.dump(report, f, indent=4, ensure_ascii=False)

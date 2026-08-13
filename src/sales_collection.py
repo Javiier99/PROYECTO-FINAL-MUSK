@@ -4,71 +4,111 @@ from src.sale import Sale
 
 
 def filter_by_category(df, category):
-    """Función auxiliar para filtrar un DataFrame por categoría."""
     return df[df["category"] == category]
 
 
 class SalesCollection:
 
     def __init__(self, file):
-        # Almacena el dataset base (lista de filas CSV/objetos o DataFrame)
         self.file = file
 
     def number_total_sales(self):
-        """Ejercicio 2: Cuenta el número total de transacciones."""
-        total_sales = 0
-        for _ in self.file:
-            total_sales += 1
-        return total_sales
+        return len(self.file)
 
-    def total_amount_by_client(self):
-        """Ejercicio 3: Suma el importe gastado por cada cliente."""
+    def total_amount_by_client(self, client_id=None):
+        """Si recibe client_id, devuelve la suma de ese cliente.
+
+        Si no, devuelve el dict completo.
+        """
         sales_amount_client = {}
+
+        # Si self.file es un DataFrame
+        if isinstance(self.file, pd.DataFrame):
+            df = self.file
+            if client_id is not None:
+                return float(df[df["client_id"] == client_id]["amount"].sum())
+            return df.groupby("client_id")["amount"].sum().to_dict()
+
+        # Si self.file es lista de objetos / rows
         for i in self.file:
-            client_id = int(i[1])
-            amount = round(float(i[4]), 2)
-            if client_id not in sales_amount_client:
-                sales_amount_client[client_id] = amount
+            cid = (
+                i.client_id
+                if hasattr(i, "client_id")
+                else (int(i[1]) if isinstance(i, (list, tuple)) else i["client_id"])
+            )
+            amount = (
+                i.amount
+                if hasattr(i, "amount")
+                else (
+                    float(i[4]) if isinstance(i, (list, tuple)) else i["amount"]
+                )
+            )
+
+            if cid not in sales_amount_client:
+                sales_amount_client[cid] = amount
             else:
-                sales_amount_client[client_id] += amount
+                sales_amount_client[cid] += amount
+
+        if client_id is not None:
+            return sales_amount_client.get(client_id, 0)
+
         return sales_amount_client
 
-    def sales_by_client(self):
-        """Ejercicio 4: Contabiliza el número de ventas asociadas a cada cliente."""
+    def sales_by_client(self, client_id=None):
+        """Si recibe client_id, devuelve la lista/número de ventas de ese cliente.
+
+        Si no, el dict completo.
+        """
         sales_client = {}
+
+        # Si self.file es un DataFrame
+        if isinstance(self.file, pd.DataFrame):
+            df = self.file
+            if client_id is not None:
+                return df[df["client_id"] == client_id]
+            return df.groupby("client_id").size().to_dict()
+
         for i in self.file:
-            client_id = int(i[1])
-            if client_id not in sales_client:
-                sales_client[client_id] = 1
-            else:
-                sales_client[client_id] += 1
-        return sales_client
+            cid = (
+                i.client_id
+                if hasattr(i, "client_id")
+                else (int(i[1]) if isinstance(i, (list, tuple)) else i["client_id"])
+            )
+
+            if cid not in sales_client:
+                sales_client[cid] = []
+            sales_client[cid].append(i)
+
+        if client_id is not None:
+            return sales_client.get(client_id, [])
+
+        return {cid: len(sales) for cid, sales in sales_client.items()}
 
     def average_sale_by_client(self):
-        """Ejercicio 5: Calcula el gasto medio por compra de cada cliente."""
-        average_sales_client = {}
-        for i in self.file:
-            client_id = int(i[1])
-            amount = float(i[4])
-            if client_id not in average_sales_client:
-                average_sales_client[client_id] = [amount, 1]
-            else:
-                average_sales_client[client_id][0] += amount
-                average_sales_client[client_id][1] += 1
+        amounts = self.total_amount_by_client()
+        counts = self.sales_by_client()
 
-        return {
-            cid: round(values[0] / values[1], 2)
-            for cid, values in average_sales_client.items()
-        }
+        if isinstance(counts, dict):
+            return {
+                cid: round(amounts[cid] / counts[cid], 2)
+                for cid in amounts
+                if cid in counts and counts[cid] > 0
+            }
+        return {}
 
     def sales_client_by_country(self, result_ejercice_3):
-        """Ejercicio 6: Determina el cliente con mayor gasto acumulado en cada país."""
+        """Devuelve el NOMBRE del cliente con más gasto por país."""
         sales_country = {}
+        max_spent = {}
+
         for client in self.file:
-            client_id = (
+            cid = (
                 client.client_id
                 if hasattr(client, "client_id")
                 else client["client_id"]
+            )
+            name = (
+                client.name if hasattr(client, "name") else client["name"]
             )
             country = (
                 client.country
@@ -76,40 +116,31 @@ class SalesCollection:
                 else client["country"]
             )
 
-            if client_id in result_ejercice_3:
-                total = result_ejercice_3[client_id]
-                if (
-                    country not in sales_country
-                    or total > sales_country[country]["total_amount_customer"]
-                ):
-                    sales_country[country] = {
-                        "ID": client_id,
-                        "total_amount_customer": round(float(total), 2),
-                    }
+            if cid in result_ejercice_3:
+                total = result_ejercice_3[cid]
+                if country not in max_spent or total > max_spent[country]:
+                    max_spent[country] = total
+                    sales_country[country] = name
+
         return sales_country
 
     def total_amount_by_category(self):
-        """Ejercicio 7: Agrupa y suma las ventas totales por categoría de producto."""
         df = self.file
         return df.groupby("category")["amount"].sum().to_dict()
 
     def client_more_sales_category(self, category):
-        """Ejercicio 8: Obtiene él o los clientes con más compras dentro de una categoría."""
         df_cat = filter_by_category(self.file, category)
         if df_cat.empty:
-            return f"No hay ventas para la categoría '{category}'"
-
+            return []
         counts = df_cat.groupby(["client_id", "name"]).size()
         max_sales = counts.max()
         top_clients = counts[counts == max_sales]
-
         return [
             {"client_id": cid, "name": name, "sales_count": int(max_sales)}
             for cid, name in top_clients.index
         ]
 
     def number_client_exceed_min_spending(self, min_amount):
-        """Ejercicio 9: Lista los clientes que hayan superado un umbral mínimo de gasto."""
         df_spend = (
             self.file.groupby(["client_id", "name"])["amount"]
             .sum()
@@ -122,10 +153,8 @@ class SalesCollection:
         return high_spenders
 
     def monthly_cumulative_sales(self):
-        """Ejercicio 10: Calcula el histórico acumulado de ventas mes a mes."""
-        df = self.file
+        df = self.file.copy()
         df["date"] = pd.to_datetime(df["date"])
         df["year_month"] = df["date"].dt.to_period("M").astype(str)
         monthly_sales = df.groupby("year_month")["amount"].sum()
-        cumulative_sales = monthly_sales.cumsum()
-        return cumulative_sales.to_dict()
+        return monthly_sales.to_dict()
