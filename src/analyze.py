@@ -1,12 +1,18 @@
+import os
+import sys
 
+# Añadir directorio raíz
+sys.path.insert(
+    0, os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
+)
 # ! Script principal, se debe: Leer los datos, crear los objetos, hacer los 10 cálculos requeridos, general el informe JSON final
 
 # * Script completo
 
 from client import Client
 from sale import Sale
-from client_collection import ClientCollection
-from sales_collection import SalesCollection
+from src.client_collection import ClientCollection
+from src.sales_collection import SalesCollection
 import json
 import csv
 import pandas as pd
