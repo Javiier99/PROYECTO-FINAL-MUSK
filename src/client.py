@@ -1,3 +1,5 @@
+
+
 class Client:
 
     def __init__(self, client_id, name, country, signup_date):
@@ -7,10 +9,13 @@ class Client:
         self.signup_date = str(signup_date)  # Fecha de registro
 
     def to_dict(self):
-        """Convierte la instancia en un diccionario plano."""
         return {
             "client_id": self.client_id,
             "name": self.name,
             "country": self.country,
             "signup_date": self.signup_date,
         }
+
+
+
+    

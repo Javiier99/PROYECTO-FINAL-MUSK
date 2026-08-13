@@ -1,12 +1,7 @@
 class Sale:
 
     def __init__(self, sale_id, client_id, product, category, amount, date):
-        # Mantenemos sale_id como str o int seguro para permitir IDs alfanuméricos como "S1"
-        try:
-            self.sale_id = int(sale_id)
-        except ValueError:
-            self.sale_id = str(sale_id)
-
+        self.sale_id = str(sale_id)  # Convierte el ID a str para soportar "S1", "101", etc.
         self.client_id = int(client_id)  # ID del cliente asociado
         self.product = str(product)  # Nombre del producto
         self.category = str(category)  # Categoría

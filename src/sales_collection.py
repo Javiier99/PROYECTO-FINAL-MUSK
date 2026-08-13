@@ -2,6 +2,7 @@ from datetime import datetime
 import pandas as pd
 from src.sale import Sale
 
+# ! Manejar toda la logica de las ventas
 
 def filter_by_category(df, category):
     return df[df["category"] == category]
@@ -12,14 +13,12 @@ class SalesCollection:
     def __init__(self, file):
         self.file = file
 
-    def number_total_sales(self):
+    # Ejercicio 2
+    def number_total_sales(self): # Contar de 1 en 1 los clientes
         return len(self.file)
+    # Ejercicio 3
 
-    def total_amount_by_client(self, client_id=None):
-        """Si recibe client_id, devuelve la suma de ese cliente.
-
-        Si no, devuelve el dict completo.
-        """
+    def total_amount_by_client(self, client_id=None): # Suma de importes de un cliente
         sales_amount_client = {}
 
         # Si self.file es un DataFrame
@@ -53,12 +52,10 @@ class SalesCollection:
             return sales_amount_client.get(client_id, 0)
 
         return sales_amount_client
+    
+    # Ejercicio 4
+    def sales_by_client(self, client_id=None): #Ventas por cada cliente
 
-    def sales_by_client(self, client_id=None):
-        """Si recibe client_id, devuelve la lista/número de ventas de ese cliente.
-
-        Si no, el dict completo.
-        """
         sales_client = {}
 
         # Si self.file es un DataFrame
@@ -84,7 +81,9 @@ class SalesCollection:
 
         return {cid: len(sales) for cid, sales in sales_client.items()}
 
-    def average_sale_by_client(self):
+
+    # Ejercicio 5
+    def average_sale_by_client(self): #Media de gasto de un cliente
         amounts = self.total_amount_by_client()
         counts = self.sales_by_client()
 
@@ -96,27 +95,28 @@ class SalesCollection:
             }
         return {}
 
-    def sales_client_by_country(self, result_ejercice_3):
-        """Devuelve el NOMBRE del cliente con más gasto por país."""
+
+    # Ejercicio 6
+    def sales_client_by_country(self, result_ejercice_3): #Cliente con mayor gasto acumulado
         sales_country = {}
         max_spent = {}
 
-        for client in self.file:
-            cid = (
+        for client in self.file: #Recorremos la lista
+            cid = ( #Extraemos el ID
                 client.client_id
                 if hasattr(client, "client_id")
                 else client["client_id"]
             )
-            name = (
+            name = ( # Extraemos el nombre
                 client.name if hasattr(client, "name") else client["name"]
             )
-            country = (
+            country = ( # Extraemos el pais
                 client.country
                 if hasattr(client, "country")
                 else client["country"]
             )
 
-            if cid in result_ejercice_3:
+            if cid in result_ejercice_3: # Comprobamos si está el pais, en caso contrario lo creamos
                 total = result_ejercice_3[cid]
                 if country not in max_spent or total > max_spent[country]:
                     max_spent[country] = total
@@ -124,23 +124,24 @@ class SalesCollection:
 
         return sales_country
 
-    def total_amount_by_category(self):
+
+    # Ejercicio 7
+    def total_amount_by_category(self): # Suma de importes por categoría de cliente
         df = self.file
         return df.groupby("category")["amount"].sum().to_dict()
 
-    def client_more_sales_category(self, category):
+    # Ejercicio 8
+    def client_more_sales_category(self, category):# cliente con más venta en una categoría
         df_cat = filter_by_category(self.file, category)
         if df_cat.empty:
             return []
         counts = df_cat.groupby(["client_id", "name"]).size()
         max_sales = counts.max()
         top_clients = counts[counts == max_sales]
-        return [
-            {"client_id": cid, "name": name, "sales_count": int(max_sales)}
-            for cid, name in top_clients.index
-        ]
+        return [{"client_id": cid, "name": name, "sales_count": int(max_sales)}for cid, name in top_clients.index]
 
-    def number_client_exceed_min_spending(self, min_amount):
+    #Ejercicio 9
+    def number_client_exceed_min_spending(self, min_amount): #Nº cliente que supera un min
         df_spend = (
             self.file.groupby(["client_id", "name"])["amount"]
             .sum()
@@ -152,7 +153,8 @@ class SalesCollection:
                 high_spenders.append(row["name"])
         return high_spenders
 
-    def monthly_cumulative_sales(self):
+    #Ejercicio 10
+    def monthly_cumulative_sales(self): # Ventas acumuladas del mes
         df = self.file.copy()
         df["date"] = pd.to_datetime(df["date"])
         df["year_month"] = df["date"].dt.to_period("M").astype(str)

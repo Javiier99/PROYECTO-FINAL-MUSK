@@ -1,4 +1,5 @@
 from src.client import Client
+# ! Logica para manejar los clientes
 
 
 class ClientCollection:
